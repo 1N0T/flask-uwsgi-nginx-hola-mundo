@@ -101,4 +101,50 @@ Llegado a este punto, todo debería seguir funcionando exactamente igual que ant
 
 Acto seguido, comprobaremos que la aplicación ya no es usable desde un navegador, por lo que tendremos que anteponer un servidor web que haga de proxy. Utilizaremos **nginx** que gispone de un módulo para comunicar con **uWSGI** de forma nativa.
 
+En lugar de un fichero de configuración, también es posible pasar los valores como parámetros (o mezclar ambos).
+```bash
+uwsgi --http-socket 127.0.0.1:6006 --plugin python3    \
+      --chdir /home/tonis/sources/python/flaskuwsgi/   \
+      --venv ./venv/ --module app --callable mi_app    \
+      --processes 4 --threads 2 --stats 127.0.0.1:9191 
+```
+La opción **--stats** publica consultar información sobre el estado del servidor.
+
 ## Instalación niginx.
+```bash
+sudo apt install nginx
+cd /etc/nginx/
+sudo nano /etc/nginx/sites-available/faskuwsgi
+```
+```json
+server {
+    listen 80;
+    server_name localhost;
+    # Descomentar si queremos ver los rewrites aplicados
+    # error_log /var/log/nginx/error.log notice;
+    # rewrite_log on;
+
+    location /app {
+    
+        # Indicamos que tipo de contenido queremos inspeccionar para modificar
+        sub_filter_types *;
+        sub_filter_once off;
+        sub_filter_last_modified on;
+        
+        # Tenemos que asegurarnos que las URLs que existen dentro del contenido se reescriben
+        # para que apunten donde queremos. Todo lo que sea /..., lo convertimos a /app/...
+        sub_filter 'href="/' 'href="/app/';
+        sub_filter "href='/" "href='/app/";
+
+        # combinamos la acción de proxy inverso y de proxy uwsgi
+        proxy_pass http://127.0.0.1:5000/;
+        rewrite /app(.*) $1 break;
+        include uwsgi_params;
+        uwsgi_pass unix:/home/user/flaskuwsgi/flaskuwsgi.sock;
+    }
+}
+```
+```bash
+sudo ln -s /etc/nginx/sites-available/faskuwsgi /etc/nginx/sites-enabled
+sudo systemctl reload nginx
+```
