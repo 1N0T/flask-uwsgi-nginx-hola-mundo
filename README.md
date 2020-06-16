@@ -1,7 +1,7 @@
 ![logo](https://raw.github.com/1N0T/images/master/global/1N0T.png)
 
 # flask-uwsgi-nginx-hola-mundo
-El objetivo es publicar una aplicación **Flask** publicada en la raiz (**/**), servida por **uWSGI** como servicio y expuesta al usuario con **nginx** que actuará como **proxy inverso**.
+El objetivo es publicar una aplicación **Flask** expuesta a nivel de la raiz (**/**), servida por **uWSGI** como servicio y expuesta al usuario con **nginx** que actuará como **proxy inverso**.
 
 Se describen los pasos seguidos en un **Ubuntu 20.04**, aunque el procedimiento, seguramente, es aplicable en otras distribuciones con alguna pequeña variación.
 
@@ -65,3 +65,40 @@ LLegado a este punto, ya tenemos una aplicación operativa que podemos probar en
 ```bash
 python3 app.py
 ```
+## Servir aplicación Flask con uWSGI.
+Una vez comprobado que la aplicación anteriro es funcional, la vamos a publicar utilizando **uWSGI** como servidor de aplicación.
+
+Como primer paso, vamos a publicar la misma aplicación utilizando **uWSGI** utilizando el protocolo **http**, lo que nos permitirá seguir utilizando el navegador para probar nuestra maravillosa aplicación.
+```bash
+nano uwsgi.ini
+```
+```ini
+[uwsgi]
+
+socket = 0.0.0.0:5000
+protocol = http
+chdir = /home/user/flaskuwsgi/
+venv = ./venv/
+plugin = python3
+module = app:mi_app
+master = true
+processes = 5
+
+socket = flaskuwsgi.sock
+chmod-socket = 666
+vacuum = true
+
+uid = nobody
+gid = nogroup
+
+die-on-term = true
+```
+Si ejecutamos el siguiente comando, será uWSGI quien sirva la aplicación anterior actuando como un servidor web al uso.
+```bash
+uwsgi /home/user/flaskuwsgi/uwsgi.ini
+```
+Llegado a este punto, todo debería seguir funcionando exactamente igual que antes. Comprobado ésto, podemos comentar la línea **protocol = http** anteponiendo una **#**. Esto hará que se sirva un **socket unix** en lugar de **http**. 
+
+Acto seguido, comprobaremos que la aplicación ya no es usable desde un navegador, por lo que tendremos que anteponer un servidor web que haga de proxy. Utilizaremos **nginx** que gispone de un módulo para comunicar con **uWSGI** de forma nativa.
+
+## Instalación niginx.
