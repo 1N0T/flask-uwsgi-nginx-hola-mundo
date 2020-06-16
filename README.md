@@ -116,7 +116,7 @@ sudo apt install nginx
 cd /etc/nginx/
 sudo nano /etc/nginx/sites-available/faskuwsgi
 ```
-```json
+```nginx
 server {
     listen 80;
     server_name localhost;
@@ -147,4 +147,34 @@ server {
 ```bash
 sudo ln -s /etc/nginx/sites-available/faskuwsgi /etc/nginx/sites-enabled
 sudo systemctl reload nginx
+uwsgi /home/user/flaskuwsgi/uwsgi.ini
+```
+Antes debemeos asegurarnos de deshabilitar el protocolo http en el fichero de configuración. Así utilizaremos la comunicación nativa entre nginx y uWSGI.
+
+Si no nos hemos equivocado, podremos acceder como hasta ahora, per en http://localhost/app y todo debería seguir funcionando igual.
+
+## uWSGI como servicio.
+Para que uWSGI publique nuestra aplicación cada vez que iniciamos el servidor, podemos colocrlo en el fichero **/etc/rc.local** o, si queremos ser más elegantes, configurarlo como servicio. Estos son los pasos a seguir.
+
+```bash
+sudo nano /etc/systemd/system/flaskuwsgi.service 
+```
+```ini
+Description=Flask uWSGI ejemplo
+After=network.target
+
+[Service]
+User=tonis
+Group=tonis
+WorkingDirectory=/home/user/flaskuwsgi
+Environment="PATH=/home/user/flaskuwsgi/venv/bin"
+ExecStart=/usr/bin/uwsgi uwsgi.ini
+
+[Install]
+WantedBy=multi-user.target
+```
+```bash
+sudo systemctl start flaskuwsgi
+sudo systemctl enable flaskuwsgi
+
 ```
