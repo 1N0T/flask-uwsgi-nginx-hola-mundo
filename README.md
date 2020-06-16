@@ -12,7 +12,7 @@ Se puede instalar como paquete **pip**, pero la mayoría de distribuciones tiene
 ```bash
 sudo apt install uwsgi-core uwsgi-plugin-python3
 ```
-## Creación del proyecto Falsk.
+## Creación del proyecto Flask.
 Creamos el directorio del proyecto, entorno virtual y una aplicación Flask mínima de ejemplo.
 ```bash
 mkdir flaskuwsgi
