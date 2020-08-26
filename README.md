@@ -110,7 +110,7 @@ uwsgi --http-socket 127.0.0.1:6006 --plugin python3    \
 ```
 La opción **--stats** publica consultar información sobre el estado del servidor.
 
-## Instalación niginx.
+## Instalación nginx.
 ```bash
 sudo apt install nginx
 cd /etc/nginx/
